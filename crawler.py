@@ -1,6 +1,12 @@
+import argparse
 import logging
 
 logger = None
+
+def parse_args():
+    parser = argparse.ArgumentParser(description = "Web crawler")
+    parser.add_argument("-d", "--debug", help = "Enable debug logging", action="store_true")
+    return parser.parse_args()
 
 def configure_logging(level=logging.INFO):
     global logger
@@ -21,7 +27,11 @@ def crawl():
     logger.debug("Completed crawling")
 
 def main():
-    configure_logging()
+    args = parse_args()
+    if args.debug:
+        configure_logging(logging.DEBUG)
+    else:
+        configure_logging(logging.INFO)
     logger.debug("Here's a debug message")
     logger.info("Here's an info message!")
     logger.warning("Here's an warning message!")
