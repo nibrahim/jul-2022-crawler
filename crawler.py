@@ -1,11 +1,20 @@
 import argparse
 import logging
 
+import requests
+from bs4 import BeautifulSoup
+
 logger = None
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "Web crawler")
     parser.add_argument("-d", "--debug", help = "Enable debug logging", action="store_true")
+    
+    subcommands = parser.add_subparsers(help="Commands")
+    subcommands.add_parser("initdb", help="Initialise the database")
+    subcommands.add_parser("crawl", help="Perform a crawl")
+    subcommands.add_parser("web", help="Start web server")
+
     return parser.parse_args()
 
 def configure_logging(level=logging.INFO):
@@ -19,11 +28,16 @@ def configure_logging(level=logging.INFO):
     logger.addHandler(screen_handler)
 
 
-def crawl():
+def get_artists(base):
     logger.debug("Crawling starting")
-    for i in range(10):
-        logger.debug("Fetching URL %s", i)
-        print ("https://....")
+    resp = requests.get(base)
+    soup = BeautifulSoup(resp.content)
+    tracklist = soup.find("table", attrs={ "class": "tracklist"})
+    artist_links = tracklist.find_all("a")
+    for link in artist_links:
+        img = link.find("img")
+        if not img:
+            logger.info(link.text)
     logger.debug("Completed crawling")
 
 def main():
@@ -32,11 +46,7 @@ def main():
         configure_logging(logging.DEBUG)
     else:
         configure_logging(logging.INFO)
-    logger.debug("Here's a debug message")
-    logger.info("Here's an info message!")
-    logger.warning("Here's an warning message!")
-    logger.critical("Here's an critical message!")
-    crawl()
+    get_artists("https://www.songlyrics.com/top-artists-lyrics.html")
 
 
 if __name__ == "__main__":
