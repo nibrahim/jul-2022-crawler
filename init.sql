@@ -3,3 +3,4 @@ CREATE TABLE artists (
        name VARCHAR(50)
 );
 
+SELECT

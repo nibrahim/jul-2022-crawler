@@ -14,7 +14,7 @@ def parse_args():
     subcommands.add_parser("initdb", help="Initialise the database")
     subcommands.add_parser("crawl", help="Perform a crawl")
     subcommands.add_parser("web", help="Start web server")
-
+    subcommand
     return parser.parse_args()
 
 def configure_logging(level=logging.INFO):
