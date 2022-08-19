@@ -4,17 +4,18 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 
+import db
+
 logger = None
 
 def parse_args():
     parser = argparse.ArgumentParser(description = "Web crawler")
     parser.add_argument("-d", "--debug", help = "Enable debug logging", action="store_true")
-    
-    subcommands = parser.add_subparsers(help="Commands")
+    parser.add_argument("--db", help="Name of database to use", action="store", default="lyrics")
+    subcommands = parser.add_subparsers(help="Commands", dest="command", required=True)
     subcommands.add_parser("initdb", help="Initialise the database")
     subcommands.add_parser("crawl", help="Perform a crawl")
     subcommands.add_parser("web", help="Start web server")
-
     return parser.parse_args()
 
 def configure_logging(level=logging.INFO):
@@ -31,6 +32,7 @@ def configure_logging(level=logging.INFO):
 def get_artists(base):
     logger.debug("Crawling starting")
     resp = requests.get(base)
+    logger.debug("Got response %s", resp)
     soup = BeautifulSoup(resp.content)
     tracklist = soup.find("table", attrs={ "class": "tracklist"})
     artist_links = tracklist.find_all("a")
@@ -40,14 +42,31 @@ def get_artists(base):
             logger.info(link.text)
     logger.debug("Completed crawling")
 
+def create_tables(db_name):
+    conn = db.get_connection(db_name)
+    with conn.cursor() as cursor:
+        with open("init.sql") as f:
+            sql = f.read()
+            cursor.execute(sql)
+    conn.commit()
+    conn.close()
+    
+
 def main():
     args = parse_args()
     if args.debug:
         configure_logging(logging.DEBUG)
     else:
         configure_logging(logging.INFO)
-    get_artists("https://www.songlyrics.com/top-artists-lyrics.html")
+    if args.command == "crawl":
+        logger.info("Crawling")
+        get_artists("https://www.songlyrics.com/top-artists-lyrics.html")
 
+    elif args.command == "initdb":
+        logger.info("Initialising database")
+        create_tables(args.db)
+    else:
+        logger.warning("%s not implemented", args.command)
 
 if __name__ == "__main__":
     main()
