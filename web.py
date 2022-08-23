@@ -6,6 +6,8 @@ app = Flask("lyrics")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///lyrics'
 db = SQLAlchemy(app)
 
+### Problems worthy of attack prove their worth by hitting back.
+
 class Artists(db.Model):
     __tablename__ = "artists"
     id = db.Column(db.Integer, primary_key = True)
@@ -39,7 +41,19 @@ def index():
 
 @app.route("/artist/<int:artist_id>")
 def artist(artist_id):
-    return f"<p> I got {artist_id}</p>"
+    artist = Artists.query.filter_by(id = artist_id).first()
+    formatted = []
+    for song in artist.songs:
+        target = url_for("song", song_id=song.id)
+        link = f'<a href="{target}">{song.name}</a>'
+        formatted.append(f"<li>{link}</li>")
+    songs_list = "".join(formatted)
+    return f"""
+Songs by <em>{artist.name}</em>
+<ol>
+{songs_list}
+</ol>
+"""
 
 @app.route("/song/<int:song_id>")
 def song(song_id):
