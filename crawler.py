@@ -5,6 +5,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import db
+import web
 
 logger = None
 
@@ -12,11 +13,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description = "Web crawler")
     parser.add_argument("-d", "--debug", help = "Enable debug logging", action="store_true")
     parser.add_argument("--db", help="Name of database to use", action="store", default="lyrics")
-    subcommands = parser.add_subparsers(help="Commands", dest="command", required=True)
+    subcommands = parser.add_subparsers(help="Commands", dest="command")
     subcommands.add_parser("initdb", help="Initialise the database")
     subcommands.add_parser("crawl", help="Perform a crawl")
     subcommands.add_parser("web", help="Start web server")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.command == None:
+        parser.error("Subcommand is required")
+    return args
 
 def configure_logging(level=logging.INFO):
     global logger
@@ -40,6 +44,7 @@ def get_artists(base):
         img = link.find("img")
         if not img:
             logger.info(link.text)
+            db.add_artist(link.text)
     logger.debug("Completed crawling")
 
 def create_tables(db_name):
@@ -65,6 +70,9 @@ def main():
     elif args.command == "initdb":
         logger.info("Initialising database")
         create_tables(args.db)
+    elif args.command == "web":
+        logger.info("Starting webserver")
+        web.app.run()
     else:
         logger.warning("%s not implemented", args.command)
 
