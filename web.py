@@ -1,6 +1,7 @@
 from flask import Flask, url_for, render_template
 from flask_sqlalchemy import SQLAlchemy
 
+import time
 
 app = Flask("lyrics")
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///lyrics'
@@ -46,9 +47,19 @@ def artist(artist_id):
 @app.route("/song/<int:song_id>")
 def song(song_id):
     song = Songs.query.filter_by(id = song_id).first()
+    songs = song.artist.songs
+    time.sleep(2)
     return render_template("song.html", 
-                           song = song)
+                           song = song,
+                           songs = songs)
 
+@app.route("/lyrics/<int:song_id>")
+def lyrics(song_id):
+    song = Songs.query.filter_by(id = song_id).first()
+    songs = song.artist.songs
+    time.sleep(2)
+    return render_template("lyrics.html", 
+                           song = song)
 
     
 
