@@ -1,10 +1,12 @@
 from flask import Flask, url_for, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_accept import accept
+from flask_cors import CORS
 
 import time
 
 app = Flask("lyrics")
+CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///lyrics'
 db = SQLAlchemy(app)
 
@@ -66,7 +68,13 @@ def song_json(song_id):
                                          id = song.artist.id)))
     return jsonify(ret)
                      
-                     
+
+@app.route("/songs")
+def example():
+    songs = Songs.query.all()
+    return jsonify(dict(songs = [dict(id=s.id, name=s.name) for s in songs]))
+                                 
+                                 
 
                      
 
